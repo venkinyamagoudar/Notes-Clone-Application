@@ -25,11 +25,4 @@ Xcode 14.2 <br>
 iOS 11+ <br>
 Swift 5 <br>
 
-## Screenshots of the application
-1. Home page
-2. Create folder
-3. Create notes in folder
-4. Delete folder
-5. Delete note.
-6. Searching for notes
-7. Text Editing
+
