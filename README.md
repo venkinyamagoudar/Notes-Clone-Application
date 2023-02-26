@@ -22,7 +22,7 @@ note,you can search for and existing node and you can change the text in a note 
 
 ## Requirements
 Xcode 14.2 <br>
-iOS 11+ <br>
+iOS 12+ <br>
 Swift 5 <br>
 
 
