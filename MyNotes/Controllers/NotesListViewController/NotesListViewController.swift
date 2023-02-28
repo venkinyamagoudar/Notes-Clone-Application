@@ -12,20 +12,19 @@ class NotesListViewController: UIViewController {
 
     @IBOutlet weak var notesListTableView: UITableView!
     
-    var coreDataController: CoreDataController!
-    var fetchedResultController: NSFetchedResultsController<Note>!
+//    var coreDataController: CoreDataController!
+//    var fetchedResultController: NSFetchedResultsController<Note>!
     var searchController: UISearchController!
     lazy var searchSelectionViewController: SearchSelectionViewController = {
         SearchSelectionViewController()
     }()
-    var folder: Folder!
     var viewModel: NotesListViewControllerViewModel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = folder.name
+        title = viewModel.folder.name
         view.backgroundColor = .secondarySystemBackground
-        viewModel = NotesListViewControllerViewModel(coreDataController: coreDataController, folder: folder)
+//        viewModel = NotesListViewControllerViewModel(coreDataController: coreDataController, folder: folder)
         navigationItem.rightBarButtonItem = editButtonItem
         navigationItem.rightBarButtonItem?.tintColor = .systemYellow
         setUpSearchController()
@@ -35,22 +34,21 @@ class NotesListViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        fetchedResultController = viewModel.setUPFetchedResultsControllerForNotes()
-        fetchedResultController.delegate = self
+//        fetchedResultController = viewModel.setUPFetchedResultsControllerForNotes()
+        viewModel.fetchedResultController.delegate = self
         do {
-            try fetchedResultController.performFetch()
+            try viewModel.fetchedResultController.performFetch()
         } catch let error {
             fatalError("Error while fetching data. Error: \(error)")
         }
-        navigationController?.toolbar.backgroundColor = .secondarySystemBackground
+       
         notesListTableView.reloadData()
     }
     
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        fetchedResultController = nil
-        try! coreDataController.viewContext.save()
-        navigationController?.toolbar.backgroundColor = .systemBackground
+//        viewModel.fetchedResultController = nil
+        try! viewModel.coreDataController.viewContext.save()
     }
     
     fileprivate func setUpSearchController() {
@@ -72,7 +70,7 @@ class NotesListViewController: UIViewController {
     fileprivate func setUpToolBarItems() {
         self.navigationController?.isToolbarHidden = false
         let space = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil)
-        let title = folder.notes!.count > 1 ? "\(folder.notes!.count) notes" : "\(folder.notes!.count) note"
+        let title = viewModel.getNumberOfFolder
         let titleButton = UIBarButtonItem(title: title, style: .plain, target: nil, action: nil)
         let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addNotesButtonTapped))
         self.toolbarItems = [space,titleButton,space,addButton]
@@ -80,7 +78,7 @@ class NotesListViewController: UIViewController {
     }
     
     func updatingEditButtonItem() {
-        if let section = fetchedResultController.sections {
+        if let section = viewModel.fetchedResultController.sections {
             navigationItem.rightBarButtonItem?.isEnabled = section[0].numberOfObjects > 0
         }
     }
@@ -121,9 +119,15 @@ class NotesListViewController: UIViewController {
         if segue.identifier == "NotesDetail",
            let destination = segue.destination as? NotesDetailViewController,
            let notesIndex = notesListTableView.indexPathForSelectedRow {
-            let note  = fetchedResultController.object(at: notesIndex)
+            let note  = viewModel.fetchedResultController.object(at: notesIndex)
             destination.note = note
-            destination.coreDataController = coreDataController
+            destination.coreDataController = viewModel.coreDataController
+            destination.deleteNode = { [weak self] in
+                if let indexPath = self?.notesListTableView.indexPathForSelectedRow {
+                    self?.viewModel.deleteNote(at: indexPath)
+                    self?.navigationController?.popViewController(animated: true)
+                }
+            }
         }
     }
 }
@@ -135,16 +139,16 @@ extension NotesListViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        return fetchedResultController.sections?.count ?? 1
+        return viewModel.fetchedResultController.sections?.count ?? 1
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
 //        setUpToolBarItems()
-        return fetchedResultController.sections?[section].numberOfObjects ?? 0
+        return viewModel.fetchedResultController.sections?[section].numberOfObjects ?? 0
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let note = fetchedResultController.object(at: indexPath)
+        let note = viewModel.fetchedResultController.object(at: indexPath)
         let cell = tableView.dequeueReusableCell(withIdentifier: NotesTableViewCell.identifier, for: indexPath) as! NotesTableViewCell
         cell.notesNameLabel.text = note.name
         cell.accessoryType = .disclosureIndicator
@@ -157,7 +161,7 @@ extension NotesListViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            viewModel.deleteNote(at: indexPath, using: fetchedResultController)
+            viewModel.deleteNote(at: indexPath)
         }
     }
     
@@ -195,6 +199,8 @@ extension NotesListViewController:  NSFetchedResultsControllerDelegate {
             if let indexPath = indexPath {
                 notesListTableView.reloadRows(at: [indexPath], with: .fade)
             }
+        @unknown default:
+            fatalError()
         }
     }
     
@@ -211,6 +217,8 @@ extension NotesListViewController:  NSFetchedResultsControllerDelegate {
         case .update:
             print("Not written yet")
             break
+        @unknown default:
+            fatalError()
         }
     }
 }
@@ -239,7 +247,7 @@ extension NotesListViewController: SearchResultTableViewControllerDelegate {
     
     func didSelectResult(tappedNote: Note) {
         let vc = storyboard?.instantiateViewController(withIdentifier: "NotesDetailViewController") as! NotesDetailViewController
-        vc.configure(with: coreDataController, tappedNote: tappedNote)
+        vc.configure(with: viewModel.coreDataController, tappedNote: tappedNote)
         self.navigationController?.pushViewController(vc, animated: true)
     }
 }

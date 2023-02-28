@@ -14,44 +14,45 @@ class FoldersViewController: UIViewController {
     lazy var searchSelectionViewController: SearchSelectionViewController = {
         SearchSelectionViewController()
     }()
-    var coreDataController: CoreDataController!
-    var fetchedResultController : NSFetchedResultsController<Folder>!
+//    var coreDataController: CoreDataController!
+//    var fetchedResultController : NSFetchedResultsController<Folder>!
     var searchController: UISearchController!
-    var viewModel: FoldersViewControllerViewModel!
+    var viewModel = FoldersViewControllerViewModel()
     
     @IBOutlet weak var tableView: UITableView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Folders"
-        view.backgroundColor = .systemBackground
-        viewModel = FoldersViewControllerViewModel(coreDataController: coreDataController)
+        view.backgroundColor = .secondarySystemBackground
+//        viewModel = FoldersViewControllerViewModel(coreDataController: coreDataController)
         setUpSearchController()
         setUpNavigationController()
         setUpTableView()
         setUpToolbarButtons()
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        tableView.deselctRowFromTable(animated: true)
-    }
-    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        fetchedResultController = viewModel.setUpFetchResultController()
-        fetchedResultController.delegate = self
+//        fetchedResultController = viewModel.setUpFetchResultController()
+        
+        viewModel.fetchedResultController.delegate = self
         do {
-            try fetchedResultController.performFetch()
+            try viewModel.fetchedResultController.performFetch()
         } catch let error {
             fatalError("Error while initialising FetchedController. Error: \(error)")
         }
         tableView.reloadData()
     }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        tableView.deselctRowFromTable(animated: true)
+    }
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        fetchedResultController = nil
+//        viewModel.fetchedResultController = nil
     }
     
     fileprivate func setUpSearchController() {
@@ -85,7 +86,6 @@ class FoldersViewController: UIViewController {
         navigationController?.isToolbarHidden = false
         navigationController?.navigationBar.tintColor = .systemYellow
         navigationController?.toolbar.tintColor = .systemYellow
-//        navigationController?.toolbar.backgroundColor = .systemBackground
     }
     
     fileprivate func setUpToolbarButtons() {
@@ -95,7 +95,7 @@ class FoldersViewController: UIViewController {
     }
     
     func updatingEditButtonItem() {
-        if let section = fetchedResultController.sections {
+        if let section = viewModel.fetchedResultController.sections {
             navigationItem.rightBarButtonItem?.isEnabled =  section[0].numberOfObjects > 0
         }
     }
@@ -136,9 +136,10 @@ class FoldersViewController: UIViewController {
         if  segue.identifier == "NotesList",
             let destination = segue.destination as? NotesListViewController,
             let folderIndex = tableView.indexPathForSelectedRow {
-            let folder = fetchedResultController.object(at: folderIndex)
-            destination.folder = folder
-            destination.coreDataController = self.coreDataController
+            let folder = viewModel.fetchedResultController.object(at: folderIndex)
+            destination.viewModel = NotesListViewControllerViewModel(coreDataController: viewModel.coreDataController, folder: folder)
+//            destination.folder = folder
+//            destination.coreDataController = self.coreDataController
         }
     }
 }
@@ -150,7 +151,7 @@ extension FoldersViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        if let section = fetchedResultController.sections {
+        if let section = viewModel.fetchedResultController.sections {
             return section.count
         }else {
             return 1
@@ -158,11 +159,11 @@ extension FoldersViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return fetchedResultController.sections?[section].numberOfObjects ?? 0
+        return viewModel.fetchedResultController.sections?[section].numberOfObjects ?? 0
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let folder = fetchedResultController.object(at: indexPath)
+        let folder = viewModel.fetchedResultController.object(at: indexPath)
         let cell = tableView.dequeueReusableCell(withIdentifier: FoldersTableViewCell.identifier, for: indexPath) as! FoldersTableViewCell
         cell.folderNameLabel.text = folder.name
         cell.isUserInteractionEnabled = true
@@ -177,7 +178,7 @@ extension FoldersViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            viewModel.deleteFolder(at: indexPath, using: fetchedResultController)
+            viewModel.deleteFolder(at: indexPath)
         }
     }
     
@@ -218,6 +219,8 @@ extension FoldersViewController: NSFetchedResultsControllerDelegate {
                 tableView.moveRow(at: indexPath!, to: newIndexPath!)
             case .update:
                 tableView.reloadRows(at: [indexPath!], with: .fade)
+        @unknown default:
+            fatalError()
         }
     }
     
@@ -234,6 +237,8 @@ extension FoldersViewController: NSFetchedResultsControllerDelegate {
         case .update:
             print("Not written yet")
             break
+        @unknown default:
+            fatalError()
         }
     }
 }
@@ -244,8 +249,7 @@ extension FoldersViewController : UISearchResultsUpdating, UISearchControllerDel
         guard let text = searchController.searchBar.text, text != "" else {
             return
         }
-        guard let searchedNotes = viewModel.fetchNotes(for: text, using: self.fetchedResultController) else {return}
-        
+        guard let searchedNotes = viewModel.fetchNotes(for: text) else {return}
         // send the resulting Notes to searchResultsController
         searchSelectionViewController.configure(model: searchedNotes)
     }
@@ -255,7 +259,7 @@ extension FoldersViewController : SearchResultTableViewControllerDelegate {
     
     func didSelectResult(tappedNote: Note) {
         let vc = storyboard?.instantiateViewController(withIdentifier: "NotesDetailViewController") as! NotesDetailViewController
-        vc.configure(with: coreDataController, tappedNote: tappedNote)
+        vc.configure(with: viewModel.coreDataController, tappedNote: tappedNote)
         self.navigationController?.pushViewController(vc, animated: true)
     }
 }

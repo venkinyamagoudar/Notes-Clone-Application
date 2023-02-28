@@ -11,21 +11,22 @@ import CoreData
 
 class FoldersViewControllerViewModel {
     
-    var coreDataController: CoreDataController
+    var coreDataController: CoreDataController = CoreDataController()
+    var fetchedResultController : NSFetchedResultsController<Folder>!
     
-    init(coreDataController: CoreDataController) {
-        self.coreDataController = coreDataController
+    init() {
+        fetchedResultController = self.setUpFetchResultController()
     }
-    
     
     /// Description: returns used to get the all the stored folder from persistent storage
     /// - Returns: NSFetchResultsController<Folder>
+    /// func setUpFetchResultController() -> NSFetchedResultsController<Folder>
     func setUpFetchResultController() -> NSFetchedResultsController<Folder> {
         //while Usingfetch request with fetchedresultcontroller they must be sorted.
         let fetchRequest:NSFetchRequest<Folder> = Folder.fetchRequest()
         let sort = NSSortDescriptor(key: "creationDate", ascending: false)
         fetchRequest.sortDescriptors = [sort]
-        
+        self.fetchedResultController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: coreDataController.viewContext, sectionNameKeyPath: nil, cacheName: nil)
         return NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: coreDataController.viewContext, sectionNameKeyPath: nil, cacheName: nil)
     }
         
@@ -34,12 +35,12 @@ class FoldersViewControllerViewModel {
     ///   - text: Text entered in the searchbar
     ///   - fetchedResult: FetchedResultController
     /// - Returns: return array of notes that have the text
-    func fetchNotes(for text: String, using fetchedResultController: NSFetchedResultsController<Folder>) -> [Note]? {
+    /// func fetchNotes(for text: String, using fetchedResultController: NSFetchedResultsController<Folder>) -> [Note]? {
+    func fetchNotes(for text: String) -> [Note]? {
         //1.Get All notes from each folder and store them in a variable
         var notes = [Note]()
         guard let folders = fetchedResultController.fetchedObjects else {return nil}
         for folder in folders {
-            print(folder.creationDate)
             for note in folder.notes!.allObjects {
                 notes.append(note as! Note)
             }
@@ -61,25 +62,18 @@ class FoldersViewControllerViewModel {
         let folder = Folder(context: coreDataController.viewContext)
         folder.name = name
         folder.creationDate = Date()
-        save()
-    }
-    
-    /// Description: To save the changes made
-    func save() {
-        do {
-            try coreDataController.viewContext.save()
-        } catch let error {
-            fatalError("Error while saving data. Error: \(error)")
-        }
+        coreDataController.save()
     }
     
     /// Description: Used to delete the folder from the core data
     /// - Parameters:
     ///   - indexPath: indexPath of the table where the data is deleted
     ///   - fetchedResultController: fetchedResults using fetchedResultController
-    func deleteFolder(at indexPath: IndexPath, using fetchedResultController: NSFetchedResultsController<Folder>) {
+    ///   func deleteFolder(at indexPath: IndexPath, using fetchedResultController: NSFetchedResultsController<Folder>) {
+
+    func deleteFolder(at indexPath: IndexPath) {
         let folder = fetchedResultController.object(at: indexPath)
         coreDataController.viewContext.delete(folder)
-        save()
+        coreDataController.save()
     }    
 }

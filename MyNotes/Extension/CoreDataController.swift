@@ -17,8 +17,9 @@ import CoreData
 class CoreDataController {
     let persistantContainer: NSPersistentContainer
     
-    init(modelName: String) {
-        self.persistantContainer = NSPersistentContainer(name: modelName)
+    init() {
+        self.persistantContainer = NSPersistentContainer(name: "Model")
+        self.load()
     }
     
     var viewContext: NSManagedObjectContext {
@@ -29,9 +30,19 @@ class CoreDataController {
     func load(completion handler: (() -> Void)? = nil ) {
         persistantContainer.loadPersistentStores { description, error in
             guard error == nil else {
-                fatalError("Persistant Container not loaded. Error: \(error)")
+                fatalError("Persistant Container not loaded. Error: \(String(describing: error))")
             }
         }
         handler?()
+    }
+    
+    /// Description: To save the changes made
+    func save() {
+        do {
+            try viewContext.save()
+            print("viewContext saved")
+        } catch let error {
+            fatalError("Error while saving data. Error: \(error)")
+        }
     }
 }

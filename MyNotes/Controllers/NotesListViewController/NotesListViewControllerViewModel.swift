@@ -13,12 +13,19 @@ class NotesListViewControllerViewModel {
     
     var coreDataController: CoreDataController
     var folder: Folder
+    var fetchedResultController: NSFetchedResultsController<Note>!
     
     init(coreDataController: CoreDataController, folder: Folder) {
         self.coreDataController = coreDataController
         self.folder = folder
+        self.fetchedResultController = self.setUPFetchedResultsControllerForNotes()
     }
     
+    var getNumberOfFolder: String {
+        get {
+            return folder.notes!.count > 1 ? "\(folder.notes!.count) notes" : "\(folder.notes!.count) note"
+        }
+    }
     
     /// Description: returns used to get the all the stored notes in selected Folder from persistent storage
     /// - Returns: NSFetchResultsController<Notes>
@@ -48,6 +55,7 @@ class NotesListViewControllerViewModel {
     ///   - text: Text entered in the searchbar
     ///   - fetchedResult: FetchedResultController
     /// - Returns: return array of notes that have the text
+    /// func fetchNotes(for text: String, using fetchedResultController: NSFetchedResultsController<Folder>) -> [Note]? {
     func fetchNotes(for text: String, using fetchedResultController: NSFetchedResultsController<Folder>) -> [Note]? {
         //1.Get All notes from each folder and store them in a variable
         var notes = [Note]()
@@ -75,25 +83,17 @@ class NotesListViewControllerViewModel {
         note.name = name
         note.creationDate = Date()
         note.folder = self.folder
-        save()
-    }
-    
-    /// Description: To save the changes made
-    func save() {
-        do {
-            try self.coreDataController.viewContext.save()
-        } catch let error {
-            fatalError("Error while saving data. Error: \(error)")
-        }
+        coreDataController.save()
     }
     
     /// Description: Used to delete the folder from the core data
     /// - Parameters:
     ///   - indexPath: indexPath of the table where the data is deleted
     ///   - fetchedResultController: fetchedResults using fetchedResultController
-    func deleteNote(at indexPath: IndexPath, using fetchedResultController: NSFetchedResultsController<Note>) {
+    ///    func deleteNote(at indexPath: IndexPath, using fetchedResultController: NSFetchedResultsController<Note>) {
+    func deleteNote(at indexPath: IndexPath) {
         let note = fetchedResultController.object(at: indexPath)
         self.coreDataController.viewContext.delete(note)
-        save()
+        coreDataController.save()
     }
 }

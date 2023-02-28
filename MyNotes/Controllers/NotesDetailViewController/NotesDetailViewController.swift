@@ -13,7 +13,7 @@ class NotesDetailViewController: UIViewController{
     @IBOutlet weak var textView: UITextView!
     var note: Note!
     var coreDataController: CoreDataController!
-//    var deleteNode: (() -> Void)?
+    var deleteNode: (() -> Void)?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,18 +29,17 @@ class NotesDetailViewController: UIViewController{
     override func viewWillDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         navigationController?.navigationBar.prefersLargeTitles = true
-        navigationController?.toolbar.backgroundColor = .secondarySystemBackground
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        navigationController?.toolbar.backgroundColor = .systemBackground
+        
     }
     
     fileprivate func rightBarButtonSetUp() {
-//        let deleteButton = UIBarButtonItem(image: UIImage(systemName: "trash"), style: .done, target: self, action: #selector(deleteButtonPressed))
+        let deleteButton = UIBarButtonItem(image: UIImage(systemName: "trash"), style: .done, target: self, action: #selector(deleteButtonPressed))
         let shareButton = UIBarButtonItem(image: UIImage(systemName: "square.and.arrow.up"), style: .done, target: self, action: #selector(shareButtonTapped))
-        navigationItem.rightBarButtonItems = [shareButton]
+        navigationItem.rightBarButtonItems = [deleteButton, shareButton]
     }
     
     func setupTextView() {
@@ -74,7 +73,7 @@ extension NotesDetailViewController {
     fileprivate func setToolBarButtons() -> [UIBarButtonItem] {
        
         let space = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        let textEditorButton = UIBarButtonItem(image: UIImage(systemName: "textformat.alt"), style: .done, target: self, action: #selector(textFormatButtonTapped))
+        let _ = UIBarButtonItem(image: UIImage(systemName: "textformat.alt"), style: .done, target: self, action: #selector(textFormatButtonTapped))
         let bold = UIBarButtonItem(image: UIImage(systemName: "bold"), style: .done, target: self, action: #selector(boldButtonTapped))
         let itallic = UIBarButtonItem(image: UIImage(systemName: "italic"), style: .done, target: self, action: #selector(itallicButtonButtonTapped))
         let underline = UIBarButtonItem(image: UIImage(systemName: "underline"), style: .done, target: self, action: #selector(underLineButtonTapped))
@@ -147,24 +146,25 @@ extension NotesDetailViewController: UITextViewDelegate {
 }
 
 
+//MARK: Delete Button
 extension NotesDetailViewController {
     
-//    @objc func deleteButtonPressed() {
-//        presentDeleteAlert()
-//    }
+    @objc func deleteButtonPressed() {
+        presentDeleteAlert()
+    }
     
-//    fileprivate func presentDeleteAlert() {
-//        let alert = UIAlertController(title: "Delete", message: "Do you want to delete note?", preferredStyle: .alert)
-//        let cancel = UIAlertAction(title: "Cancel", style: .cancel)
-//        let delete = UIAlertAction(title: "Delete", style: .destructive, handler: deleteHandler )
-//        alert.addAction(cancel)
-//        alert.addAction(delete)
-//        present(alert, animated: true)
-//    }
-//
-//    fileprivate func deleteHandler(sender: UIAlertAction) {
-//        deleteNode?()
-//    }
+    fileprivate func presentDeleteAlert() {
+        let alert = UIAlertController(title: "Delete", message: "Do you want to delete note?", preferredStyle: .alert)
+        let cancel = UIAlertAction(title: "Cancel", style: .cancel)
+        let delete = UIAlertAction(title: "Delete", style: .destructive, handler: deleteHandler )
+        alert.addAction(cancel)
+        alert.addAction(delete)
+        present(alert, animated: true)
+    }
+
+    fileprivate func deleteHandler(sender: UIAlertAction) {
+        deleteNode?()
+    }
     
     @objc func shareButtonTapped(_ sender: UIBarButtonItem) {
         

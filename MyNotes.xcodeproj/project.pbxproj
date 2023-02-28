@@ -100,21 +100,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		242B2F1D299C7B0600A3B7D1 /* Search */ = {
+		242B2F1D299C7B0600A3B7D1 /* SearchController */ = {
 			isa = PBXGroup;
 			children = (
 				242B2F15299C7A4800A3B7D1 /* SearchSelectionViewController.swift */,
 			);
-			path = Search;
+			path = SearchController;
 			sourceTree = "<group>";
 		};
-		242B2F1E299C7B2C00A3B7D1 /* Search */ = {
+		242B2F1E299C7B2C00A3B7D1 /* SearchTableViewCell */ = {
 			isa = PBXGroup;
 			children = (
 				242B2F19299C7AFA00A3B7D1 /* SearchSelectionTableViewCell.swift */,
 				242B2F1A299C7AFA00A3B7D1 /* SearchSelectionTableViewCell.xib */,
 			);
-			path = Search;
+			path = SearchTableViewCell;
 			sourceTree = "<group>";
 		};
 		2478E9C52979F765006EDBCC = {
@@ -171,9 +171,7 @@
 		2478EA052979F837006EDBCC /* View */ = {
 			isa = PBXGroup;
 			children = (
-				247D668829A053070062849D /* FolderTableViewCell */,
-				247D668929A053130062849D /* NotesTableViewCell */,
-				242B2F1E299C7B2C00A3B7D1 /* Search */,
+				24854B7429AE6D3400E1E8E1 /* Cells */,
 				2478E9D72979F765006EDBCC /* Main.storyboard */,
 				2478E9DC2979F767006EDBCC /* LaunchScreen.storyboard */,
 			);
@@ -186,7 +184,7 @@
 				247D667F299F00810062849D /* FoldersViewController */,
 				247D6682299F33AF0062849D /* NotesListViewController */,
 				247D6685299FD8390062849D /* NotesDetailViewController */,
-				242B2F1D299C7B0600A3B7D1 /* Search */,
+				242B2F1D299C7B0600A3B7D1 /* SearchController */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -195,7 +193,6 @@
 			isa = PBXGroup;
 			children = (
 				2478EA0C2979F8F8006EDBCC /* Model.xcdatamodeld */,
-				2478EA13297A0834006EDBCC /* CoreDataController.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -203,6 +200,7 @@
 		2478EA17297B2763006EDBCC /* Extension */ = {
 			isa = PBXGroup;
 			children = (
+				2478EA13297A0834006EDBCC /* CoreDataController.swift */,
 				2478EA15297B275D006EDBCC /* TableViewExtension.swift */,
 			);
 			path = Extension;
@@ -257,6 +255,16 @@
 				2478E9D12979F765006EDBCC /* AppDelegate.swift */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		24854B7429AE6D3400E1E8E1 /* Cells */ = {
+			isa = PBXGroup;
+			children = (
+				242B2F1E299C7B2C00A3B7D1 /* SearchTableViewCell */,
+				247D668929A053130062849D /* NotesTableViewCell */,
+				247D668829A053070062849D /* FolderTableViewCell */,
+			);
+			path = Cells;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
